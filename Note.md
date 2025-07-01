@@ -96,4 +96,75 @@
 ## Proxies
 
 - `Delegatecall`
-    - Similar to `call`
+    - Similar to `call`, with a sense of borrowing a function, example:
+
+    ```solidity
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.26;
+
+    // NOTE: Deploy this contract first
+    contract B {
+    // NOTE: storage layout must be the same as contract A
+    uint256 public num;
+    address public sender;
+    uint256 public value;
+
+        function setVars(uint256 _num) public payable {
+            num = _num;
+            sender = msg.sender;
+            value = msg.value;
+        }
+    }
+
+    contract A {
+    uint256 public num;
+    address public sender;
+    uint256 public value;
+
+        event DelegateResponse(bool success, bytes data);
+        event CallResponse(bool success, bytes data);
+
+        // Function using delegatecall
+        function setVarsDelegateCall(address _contract, uint256 _num)
+            public
+            payable
+        {
+            // A's storage is set; B's storage is not modified.
+            (bool success, bytes memory data) = _contract.delegatecall(
+                abi.encodeWithSignature("setVars(uint256)", _num)
+            );
+
+            emit DelegateResponse(success, data);
+        }
+
+        // Function using call
+        function setVarsCall(address _contract, uint256 _num) public payable {
+            // B's storage is set; A's storage is not modified.
+            (bool success, bytes memory data) = _contract.call{value: msg.value}(
+                abi.encodeWithSignature("setVars(uint256)", _num)
+            );
+
+            emit CallResponse(success, data);
+        }
+    }
+    ```
+
+    When directly interacting with B's `setVars`, I set B's `num` to 1, when calling A's `setVarsCall` with B's addr and
+    `2`, I am setting B's `num` to `2`, A's `num` is still `0`, this is what I have done before, when calling A's
+    `setVarsDelegateCall` with `3`, B's `num` stays the same while A's `num` gets set to `3`, and this updating process is
+    ignorant of the variable names of A, it only respects the storage slot, that is to say, in B, the func is updating
+    `num` hence storage slot 0, so when getting delegate called, the proxy will also be updating the variable stored in
+    slot 0, regardless of the written variable name in A
+    - With this being said, event there is no variable at slot 0, the slot's value is still going to be updated
+    - What if the types don't match?
+
+        ```solidity
+        bool public num;
+        ```
+
+        when called with `222`, txn DOES go through and the `num` is now `true`, when passing `0`, `num` will be `false`
+        - What happened is that the `bool` slot is actually set to the value of `222`, but when solidity reads the
+          value, it does not see `0x0...0`, so it thinks that this value means `num` is `true`
+### Proxy sub-lesson
+- `Yul`
+    - Intermediate language that can be compiled to bytecode for different backends, allowing writing low-level codes close to opcodes
