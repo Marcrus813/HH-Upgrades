@@ -19,8 +19,10 @@
         "hardhat-gas-reporter": "^1.0.8",
         "hardhat-typechain": "^0.3.5",
         "prettier": "^3.5.3",
+        "prettier-plugin-solidity": "^2.0.0",
         "solady": "^0.1.19",
-        "solidity-coverage": "^0.8.0",
+        "solhint": "^5.2.0",
+        "solidity-coverage": "^0.8.16",
         "typechain": "^8.3.0"
     },
     "scripts": {

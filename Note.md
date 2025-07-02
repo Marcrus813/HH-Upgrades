@@ -165,6 +165,33 @@
         when called with `222`, txn DOES go through and the `num` is now `true`, when passing `0`, `num` will be `false`
         - What happened is that the `bool` slot is actually set to the value of `222`, but when solidity reads the
           value, it does not see `0x0...0`, so it thinks that this value means `num` is `true`
+
 ### Proxy sub-lesson
+
 - `Yul`
-    - Intermediate language that can be compiled to bytecode for different backends, allowing writing low-level codes close to opcodes
+    - Intermediate language that can be compiled to bytecode for different backends, allowing writing low-level codes
+      close to opcodes
+    - `:=` is to set value in assembly
+- Openzeppelin's `Proxy.sol`
+    - `_delegate`
+        - Mainly, it goes and does the delegate call
+    - There are `fallback` and `receive` functions, when receiving calls that it does not recognize, calls `fallback`,
+      `fallback` calls `_delegate`
+        - Proxy receiving data for a function that it does not recognize(not a function within itself), it sends to the
+          implementation with
+          `delegatecall`
+        - Function clashing
+            - If the implementation has a function with signature like `setImplementation`(the exact same as the proxy),
+              then in the proxy, the fallback will not be triggered and hence the function in implementation will not be
+              called
+    - Should not have any storage in proxy contract so we don't screw things up, but then how to store data?
+        - `EIP-1967`: Standard Proxy Storage Slots
+            - Specifying specific storage slots for proxies
+
+### Transparent Upgradable Proxy contract
+
+- Ways to deploy transparent proxy
+    1. Build the proxy contract myself and deploy
+    2. Hardhat proxy(when back in hardhat-deploy) or [
+       `Upgradable Contracts`](https://hardhat.org/ignition/docs/guides/upgradeable-proxies) in ignition
+    3. Openzeppelin plugins

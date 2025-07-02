@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.10;
+
+import "@openzeppelin/contracts/proxy/Proxy.sol";
+
+contract DelegateCallExample is Proxy {
+    bytes32 private constant _IMPLEMENTATION_SLOT = 0x0;
+
+    function setImplementation(address newImplementation) public {
+        assembly {
+            sstore(_IMPLEMENTATION_SLOT, newImplementation) // Stores the target implementation address in `_IMPLEMENTATION_SLOT`
+        }
+    }
+
+    function _implementation() internal view override returns (address implementationAddress) {
+        assembly {
+            implementationAddress := sload(_IMPLEMENTATION_SLOT) // Read from it
+        }
+    }
+
+    function getDataToTransact(uint256 numToUpdate) public pure returns (bytes memory) {
+        return abi.encodeWithSignature("setValue(uint256)", numToUpdate);
+    }
+
+    function readStorage() public view returns (uint256 result) {
+        assembly{
+            result := sload(0) // storage load storage slot 0
+        }
+    }
+}
+
+// Calling `SmallProxy` -sent to-> ImplementationA, storage stored in proxy
+
+contract ImplementationA {
+    uint256 public value;
+
+    function setValue(uint256 newValue) public {
+        value = newValue;
+    }
+}
