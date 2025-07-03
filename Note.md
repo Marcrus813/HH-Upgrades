@@ -195,3 +195,24 @@
     2. Hardhat proxy(when back in hardhat-deploy) or [
        `Upgradable Contracts`](https://hardhat.org/ignition/docs/guides/upgradeable-proxies) in ignition
     3. Openzeppelin plugins
+- Ignition code breakdown
+    - `TransparentUpgradeableProxy`
+        - `ProxyAdminOwner` will not be able to interact with the proxy, but is able to upgrade it
+        - Deploy `TransparentUpgradeableProxy` with `ProxyAdminOwner` as owner(in dev scenario, using hardhat
+          signers[0])
+            - Upon deploying `TransparentUpgradeableProxy`, it will create a new `ProxyAdmin` contract within its
+              constructor, and capture `AdminChanged` event, the `newAdmin` param is the address of this `ProxyAdmin`
+              contract
+        - Finally, use the things above to get the contract for later interaction
+    - Create `Box` module
+        - First use `useModule` to get proxy contract, ensuring this happens after proxy deployment
+        - Use `Box` abi for the contract at `proxy`, allowing to interact with `Box` through proxy
+    - Upgrading
+        - Get `ProxyAdmin` contract from `boxModule`
+        - Deploy V2
+        - Encode the function call with `encodeFunctionCall` to V2
+        - Call `upgradeAndCall` from `ProxyAdmin` with:
+            1. Proxy contract
+            2. V2 contract
+            3. encoded data
+    - Reason for this approach
