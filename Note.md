@@ -91,7 +91,7 @@
                     - Puts the upgrading logic in the implementation contract
                 - Diamond pattern
                     - One contract implemented in several subcontracts(multi-implementation)
-                    - Allows upgrading a specific aspect of an "contract"
+                    - Allows upgrading a specific aspect of a "contract"
 
 ## Proxies
 
@@ -155,7 +155,7 @@
     ignorant of the variable names of A, it only respects the storage slot, that is to say, in B, the func is updating
     `num` hence storage slot 0, so when getting delegate called, the proxy will also be updating the variable stored in
     slot 0, regardless of the written variable name in A
-    - With this being said, event there is no variable at slot 0, the slot's value is still going to be updated
+    - With this being said, even there is no variable at slot 0, the slot's value is still going to be updated
     - What if the types don't match?
 
         ```solidity
@@ -187,6 +187,35 @@
     - Should not have any storage in proxy contract so we don't screw things up, but then how to store data?
         - `EIP-1967`: Standard Proxy Storage Slots
             - Specifying specific storage slots for proxies
+            - Logic contract address
+                - Storage slot `0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc` (obtained as
+                  `bytes32(uint256(keccak256('eip1967.proxy.implementation')) - 1)`) holds the address of the
+                  implementation
+                  contract
+            - Admin address
+                - Storage slot `0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103` (obtained as
+                  `bytes32(uint256(keccak256('eip1967.proxy.admin')) - 1)`) holds the address that is allowed to upgrade
+                  the logic contract address
+    - Reading storage
+        - If only considering user interaction
+            - Reading values like implementation address and admin address, use `sload([the slot])`, cuz the slot is
+              fixed by standard
+            - Reading normal states, the evm compiles down to the same logic as the implementation contract: mapping
+              variable name to slot then value:
+                - Public variables' invisible getter behaves the same, the explicit getters defined by creator still
+                  returns the "intended" value
+                - This is why no matter what, upgrading a contract should never "insert" state variables in the original
+                  layout, as it will surely and devastatingly corrupt the data stored on proxy, so when upgrading,
+                  suppress the urge to manage code readability, always append state variable, as this is the
+                  **_PRICE YOU
+                  PAY_** for upgrading
+                    - There can be "workarounds":
+                        - declare variable like: `uint256[50]` between groups of variables to preserve 50 slots for
+                          future
+                          use, but I haven't seen implementations, so it's not verified for me
+                        - Struct grouping
+                            - Manage the storage manually, declare a slot for storage, store a struct variable to store
+                              values, also not verified
 
 ### Transparent Upgradable Proxy contract
 

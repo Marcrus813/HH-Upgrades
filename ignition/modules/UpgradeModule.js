@@ -1,6 +1,6 @@
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
-const { boxModule } = require("ProxyModule");
+const boxModule = require("./ProxyModule");
 
 const upgradeModule = buildModule("UpgradeModule", (m) => {
     const proxyAdminOwner = m.getAccount(0);
