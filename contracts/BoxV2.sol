@@ -2,12 +2,19 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.7;
 
-contract BoxV2 {
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
+contract BoxV2 is Initializable {
     uint256 internal s_value;
 
     event ValueChanged(uint256 indexed oldValue, uint256 indexed newValue);
 
-    constructor() {}
+    // constructor shouldn't exist! Use `initialize` instead!
+    // constructor() {}
+
+    function initialize() public initializer {
+
+    }
 
     function store(uint256 value) public {
         uint256 oldValue = s_value;

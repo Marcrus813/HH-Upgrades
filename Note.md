@@ -245,3 +245,7 @@
             2. V2 contract
             3. encoded data
     - Reason for this approach
+
+## Follow up
+- Constructors in implementation contracts
+  - When a contract is deployed, the code within its constructor is executed, and storage changes is made to the *implementation* contract, but this change will not be reflected by the proxy, hence, the proxy's storage will not be initialized to mirror the implementation's, to avoid this, the implementation should not contain constructor and use `initialize()` instead, see more info [here](https://docs.openzeppelin.com/upgrades-plugins/writing-upgradeable)
